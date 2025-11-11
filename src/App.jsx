@@ -51,7 +51,7 @@ function parseCSV(text) {
   return rows;
 }
 
-// --- Lightweight Virtual Grid (kept for big lists) ---
+// --- Lightweight Virtual Grid ---
 function VirtualGrid({ items, renderItem, rowHeight = 260, columnWidth = 200, gap = 12 }) {
   const containerRef = useRef(null);
   const [visible, setVisible] = useState({ start: 0, end: 0, width: 0, height: 0 });
@@ -124,7 +124,12 @@ export default function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Shared loader with cache-busting and error handling
+  // ✅ Update browser tab title
+  useEffect(() => {
+    document.title = "Poketwnz — your one-stop Pokémon store!";
+  }, []);
+
+  // Shared loader
   const load = useCallback(async () => {
     try {
       if (!SHEET_CSV_URL) throw new Error("CSV URL is empty (check .env / Netlify env var)");
@@ -162,13 +167,25 @@ export default function App() {
   }, []);
 
   // Initial + periodic refresh
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { const id = setInterval(load, REFRESH_MS); return () => clearInterval(id); }, [load]);
   useEffect(() => {
-    const onVis = () => { if (document.visibilityState === "visible") load(); };
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    const id = setInterval(load, REFRESH_MS);
+    return () => clearInterval(id);
+  }, [load]);
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") load();
+    };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("focus", onVis);
-    return () => { document.removeEventListener("visibilitychange", onVis); window.removeEventListener("focus", onVis); };
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onVis);
+    };
   }, [load]);
 
   // Filters
@@ -204,7 +221,6 @@ export default function App() {
     setFiltered(next);
   }, [query, priceFilter, statusFilter, cards]);
 
-  // ✅ Use CardItem inside renderCard
   const renderCard = (c, i) => <CardItem key={i} card={c} />;
 
   const smallList = filtered.length <= 100;
@@ -212,11 +228,22 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center px-4 py-6">
       <div className="w-full max-w-[1100px] flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold text-green-700">Poketwnz Storefront</h1>
+        <div className="flex flex-col">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-wide text-green-700">
+            Poketwnz
+          </h1>
+          <p className="text-sm md:text-base italic text-gray-600">
+            your one-stop Pokémon store!
+          </p>
+        </div>
         <div className="flex items-center gap-2">
           {lastUpdated && (
             <span className="text-xs text-gray-500">
-              Last updated: {new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2-digit" }).format(lastUpdated)}
+              Last updated:{" "}
+              {new Intl.DateTimeFormat(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(lastUpdated)}
             </span>
           )}
           <button
@@ -238,7 +265,11 @@ export default function App() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <select className="border p-2 rounded-lg" value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)}>
+        <select
+          className="border p-2 rounded-lg"
+          value={priceFilter}
+          onChange={(e) => setPriceFilter(e.target.value)}
+        >
           <option value="">All Prices</option>
           <option value="1-3">$1–$3</option>
           <option value="4-5">$4–$5</option>
@@ -247,7 +278,11 @@ export default function App() {
           <option value="26-50">$26–$50</option>
           <option value="50+">$50+</option>
         </select>
-        <select className="border p-2 rounded-lg" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+        <select
+          className="border p-2 rounded-lg"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
           <option value="">All Status</option>
           <option value="AVAILABLE">Available</option>
           <option value="HOLD">Hold</option>

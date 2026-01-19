@@ -1,15 +1,168 @@
-.wrap {
-  max-width: 1200px;
+:root {
+  --bg: #0b0f17;
+  --panel: #0f1623;
+  --card: #101a2b;
+  --border: rgba(255,255,255,.08);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.65);
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,.20), transparent 60%),
+              radial-gradient(1000px 500px at 100% 0%, rgba(34,197,94,.14), transparent 55%),
+              var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+}
+
+.wrap { max-width: 1180px; margin: 0 auto; padding: 18px; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+  background: rgba(11,15,23,.75);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 18px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 20px;
+}
+
+.brand { display: flex; flex-direction: column; gap: 2px; }
+.brand h1 { margin: 0; font-size: 18px; letter-spacing: .2px; }
+.brand .tag { color: var(--muted); font-size: 12px; }
+
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.search {
+  width: min(420px, 70vw);
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  outline: none;
+}
+.search::placeholder { color: rgba(255,255,255,.45); }
+
+.pill {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+}
+.pill:hover { background: rgba(255,255,255,.09); }
+
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 14px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 14px;
+  padding-bottom: 28px;
 }
 
 .card {
-  text-align: left;
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform .12s ease, border-color .12s ease;
+}
+.card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.14); }
+
+.thumb {
+  height: 150px;
+  background: rgba(255,255,255,.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.noimg {
+  color: rgba(255,255,255,.45);
+  font-size: 13px;
+}
+
+.body { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.name { font-weight: 800; font-size: 15px; line-height: 1.15; }
+.sub { color: var(--muted); font-size: 12px; }
+
+.price {
+  font-weight: 900;
+  font-size: 16px;
+  margin-top: 4px;
+}
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: rgba(255,255,255,.85);
+  background: rgba(255,255,255,.05);
+}
+
+.badge.good { border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10); }
+.badge.warn { border-color: rgba(245,158,11,.40); background: rgba(245,158,11,.10); }
+.badge.prem { border-color: rgba(99,102,241,.45); background: rgba(99,102,241,.12); }
+
+.notes {
+  color: rgba(255,255,255,.75);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.cubemode .thumb { height: 110px; }
+.cubemode .sub, .cubemode .notes { display: none; }
+.cubemode .name { font-size: 16px; }
+.cubemode .price { font-size: 20px; }
+
+@media (max-width: 520px) {
+  .search { width: 100%; }
+  .topbar-inner { align-items: flex-start; flex-direction: column; }
+  .controls { width: 100%; justify-content: space-between; }
 }

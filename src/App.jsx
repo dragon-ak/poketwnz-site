@@ -13,7 +13,6 @@ function priceBand(bnd) {
 
 function formatBnd(n) {
   if (!Number.isFinite(n)) return "";
-  // Show as integer if whole number, else 2dp
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
 
@@ -22,6 +21,8 @@ export default function App() {
   const [q, setQ] = useState("");
   const [onlyAvailable, setOnlyAvailable] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  const [selected, setSelected] = useState(null);
 
   const CSV_URL = import.meta.env.VITE_INVENTORY_CSV_URL;
   const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || ""; // e.g. "6738XXXXXX"
@@ -51,6 +52,15 @@ export default function App() {
       })
       .catch(console.error);
   }, [CSV_URL]);
+
+  // Close modal on ESC
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") setSelected(null);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
@@ -116,8 +126,7 @@ export default function App() {
           <div className="meta-right">
             {lastUpdated ? (
               <span className="muted">
-                Last updated:{" "}
-                <b>{lastUpdated.toLocaleString()}</b>
+                Last updated: <b>{lastUpdated.toLocaleString()}</b>
               </span>
             ) : (
               <span className="muted">Loading…</span>
@@ -143,7 +152,17 @@ export default function App() {
             const waLink = buildWhatsAppLink(r);
 
             return (
-              <article className="card" key={i}>
+              <article
+                className="card"
+                key={i}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelected(r)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setSelected(r);
+                }}
+                style={{ cursor: "pointer" }}
+              >
                 <div className="thumb">
                   {r.image ? (
                     <img src={r.image} alt={r.name} loading="lazy" />
@@ -166,7 +185,7 @@ export default function App() {
 
                   {r.notes ? <div className="notes">{r.notes}</div> : null}
 
-                  <div className="actions">
+                  <div className="actions" onClick={(e) => e.stopPropagation()}>
                     <a
                       className={`btn ${!waLink ? "btn-disabled" : ""}`}
                       href={waLink || undefined}
@@ -186,6 +205,78 @@ export default function App() {
           })}
         </main>
       </div>
+
+      {/* Modal */}
+      {selected ? (
+        <div className="overlay" onClick={() => setSelected(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-head">
+              <div className="modal-title">
+                {selected.name} {selected.number ? `(#${selected.number})` : ""}
+              </div>
+              <button className="iconbtn" onClick={() => setSelected(null)} aria-label="Close">
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="modal-media">
+                {selected.image ? (
+                  <img src={selected.image} alt={selected.name} />
+                ) : (
+                  <div className="noimg">No image</div>
+                )}
+              </div>
+
+              <div className="modal-info">
+                <div className="modal-price">BND {formatBnd(selected.price_bnd)}</div>
+
+                <div className="badges">
+                  <span className="badge">{selected.status || "—"}</span>
+                  {selected.rarity ? <span className="badge">{selected.rarity}</span> : null}
+                  {selected.condition ? <span className="badge">{selected.condition}</span> : null}
+                </div>
+
+                <div className="kv">
+                  <span>Set</span><b>{selected.set || "-"}</b>
+                  <span>Number</span><b>{selected.number || "-"}</b>
+                  <span>Rarity</span><b>{selected.rarity || "-"}</b>
+                  <span>Condition</span><b>{selected.condition || "-"}</b>
+                </div>
+
+                {selected.notes ? (
+                  <div className="notes" style={{ marginTop: 4 }}>
+                    {selected.notes}
+                  </div>
+                ) : null}
+
+                <div className="modal-actions">
+                  {(() => {
+                    const waLink = buildWhatsAppLink(selected);
+                    return (
+                      <a
+                        className={`btn ${!waLink ? "btn-disabled" : ""}`}
+                        href={waLink || undefined}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => {
+                          if (!waLink) e.preventDefault();
+                        }}
+                      >
+                        DM to buy (WhatsApp)
+                      </a>
+                    );
+                  })()}
+                </div>
+
+                <div className="muted" style={{ fontSize: 12 }}>
+                  Tip: press <b>ESC</b> to close.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -121,7 +121,7 @@ export default function App() {
           <div className="coming-card">
             <div className="coming-logo">Poketwnz</div>
             <div className="coming-tag">
-              Pokémon cards. Done properly.
+              Pokémon cards. From Brunei.
             </div>
 
             <div className="coming-text">
@@ -130,7 +130,7 @@ export default function App() {
             </div>
 
             <div className="coming-sub">
-              Follow us on WhatsApp or Instagram for updates.
+              Follow us on Instagram for updates.
             </div>
           </div>
         </div>

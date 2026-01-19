@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
 import "./App.css";
 
+/* ===============================
+   TOGGLE COMING SOON HERE
+   =============================== */
+const COMING_SOON = true; // set to false when launching
+
 function priceBand(bnd) {
   if (!Number.isFinite(bnd)) return { label: "—", cls: "" };
   if (bnd <= 1) return { label: "$1 BIN", cls: "good" };
@@ -21,19 +26,24 @@ export default function App() {
   const [q, setQ] = useState("");
   const [onlyAvailable, setOnlyAvailable] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
-
   const [selected, setSelected] = useState(null);
 
   const CSV_URL = import.meta.env.VITE_INVENTORY_CSV_URL;
-  const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || ""; // e.g. "6738XXXXXX"
+  const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || "";
 
+  /* ===============================
+     LOAD INVENTORY
+     =============================== */
   useEffect(() => {
     if (!CSV_URL) return;
 
     fetch(CSV_URL, { cache: "no-store" })
       .then((r) => r.text())
       .then((text) => {
-        const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+        const parsed = Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+        });
 
         const clean = (parsed.data || []).map((r) => ({
           set: r.set || "",
@@ -53,20 +63,25 @@ export default function App() {
       .catch(console.error);
   }, [CSV_URL]);
 
-  // Close modal on ESC
+  /* ===============================
+     CLOSE MODAL ON ESC
+     =============================== */
   useEffect(() => {
-    function onKeyDown(e) {
+    function onKey(e) {
       if (e.key === "Escape") setSelected(null);
     }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  /* ===============================
+     FILTER + SEARCH
+     =============================== */
   const filtered = useMemo(() => {
     const qq = q.trim().toLowerCase();
     return rows
       .filter((r) =>
-        onlyAvailable ? r.status === "AVAILABLE" : r.status && r.status !== "SOLD"
+        onlyAvailable ? r.status === "AVAILABLE" : r.status !== "SOLD"
       )
       .filter((r) => {
         if (!qq) return true;
@@ -75,31 +90,62 @@ export default function App() {
       .sort((a, b) => a.price_bnd - b.price_bnd);
   }, [rows, q, onlyAvailable]);
 
+  /* ===============================
+     WHATSAPP LINK
+     =============================== */
   function buildWhatsAppLink(card) {
     if (!WHATSAPP_NUMBER) return "";
 
-    const price = formatBnd(card.price_bnd);
     const lines = [
-      "Hi Poketwnz! I want to buy this card:",
+      "Hi Poketwnz! I’m interested in this card:",
       `• ${card.name}${card.number ? ` (#${card.number})` : ""}`,
       `• Set: ${card.set || "-"}`,
       `• Condition: ${card.condition || "-"}`,
-      `• Price: BND ${price || "-"}`,
+      `• Price: BND ${formatBnd(card.price_bnd)}`,
       "",
       "Is it still available?",
     ];
 
-    const text = encodeURIComponent(lines.join("\n"));
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`;
+    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+      lines.join("\n")
+    )}`;
   }
 
   return (
     <div>
+      {/* ===============================
+          COMING SOON OVERLAY
+          =============================== */}
+      {COMING_SOON && (
+        <div className="coming-overlay">
+          <div className="coming-card">
+            <div className="coming-logo">Poketwnz</div>
+            <div className="coming-tag">
+              Pokémon cards. Done properly.
+            </div>
+
+            <div className="coming-text">
+              We’re setting things up.<br />
+              Inventory and pricing coming soon.
+            </div>
+
+            <div className="coming-sub">
+              Follow us on WhatsApp or Instagram for updates.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===============================
+          HEADER
+          =============================== */}
       <div className="topbar">
         <div className="topbar-inner">
           <div className="brand">
             <div className="logo">Poketwnz</div>
-            <div className="tag">Cube-store finds. Collector-friendly prices.</div>
+            <div className="tag">
+              Cube-store finds. Collector-friendly prices.
+            </div>
           </div>
 
           <div className="controls">
@@ -109,63 +155,43 @@ export default function App() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search card / set / rarity…"
             />
-
-            <button className="pill" onClick={() => setOnlyAvailable((v) => !v)}>
-              {onlyAvailable ? "Showing: AVAILABLE" : "Showing: ALL (not SOLD)"}
+            <button className="pill" onClick={() => setOnlyAvailable(!onlyAvailable)}>
+              {onlyAvailable ? "Showing: AVAILABLE" : "Showing: ALL"}
             </button>
           </div>
         </div>
       </div>
 
+      {/* ===============================
+          CONTENT
+          =============================== */}
       <div className="wrap">
         <div className="meta">
           <div>
             Showing <b>{filtered.length}</b> cards
           </div>
-
-          <div className="meta-right">
-            {lastUpdated ? (
-              <span className="muted">
-                Last updated: <b>{lastUpdated.toLocaleString()}</b>
-              </span>
-            ) : (
-              <span className="muted">Loading…</span>
-            )}
+          <div className="muted">
+            {lastUpdated
+              ? `Last updated: ${lastUpdated.toLocaleString()}`
+              : "Loading…"}
           </div>
         </div>
-
-        {!CSV_URL ? (
-          <div className="error">
-            Missing <b>VITE_INVENTORY_CSV_URL</b> in Netlify environment variables.
-          </div>
-        ) : null}
-
-        {!WHATSAPP_NUMBER ? (
-          <div className="warnbox">
-            WhatsApp button is disabled because <b>VITE_WHATSAPP_NUMBER</b> isn’t set yet.
-          </div>
-        ) : null}
 
         <main className="grid">
           {filtered.map((r, i) => {
             const band = priceBand(r.price_bnd);
-            const waLink = buildWhatsAppLink(r);
+            const wa = buildWhatsAppLink(r);
 
             return (
               <article
-                className="card"
                 key={i}
-                role="button"
-                tabIndex={0}
+                className="card"
                 onClick={() => setSelected(r)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") setSelected(r);
-                }}
                 style={{ cursor: "pointer" }}
               >
                 <div className="thumb">
                   {r.image ? (
-                    <img src={r.image} alt={r.name} loading="lazy" />
+                    <img src={r.image} alt={r.name} />
                   ) : (
                     <div className="noimg">No image</div>
                   )}
@@ -173,7 +199,7 @@ export default function App() {
 
                 <div className="body">
                   <div className="row">
-                    <div className="name">{r.name || "(No name)"}</div>
+                    <div className="name">{r.name}</div>
                     <div className={`badge ${band.cls}`}>{band.label}</div>
                   </div>
 
@@ -183,18 +209,15 @@ export default function App() {
 
                   <div className="price">BND {formatBnd(r.price_bnd)}</div>
 
-                  {r.notes ? <div className="notes">{r.notes}</div> : null}
-
-                  <div className="actions" onClick={(e) => e.stopPropagation()}>
+                  <div
+                    className="actions"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <a
-                      className={`btn ${!waLink ? "btn-disabled" : ""}`}
-                      href={waLink || undefined}
+                      className={`btn ${!wa ? "btn-disabled" : ""}`}
+                      href={wa || undefined}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={(e) => {
-                        if (!waLink) e.preventDefault();
-                      }}
-                      title={!waLink ? "Set VITE_WHATSAPP_NUMBER to enable" : "Chat on WhatsApp"}
                     >
                       DM to buy (WhatsApp)
                     </a>
@@ -206,15 +229,17 @@ export default function App() {
         </main>
       </div>
 
-      {/* Modal */}
-      {selected ? (
+      {/* ===============================
+          MODAL
+          =============================== */}
+      {selected && (
         <div className="overlay" onClick={() => setSelected(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <div className="modal-title">
-                {selected.name} {selected.number ? `(#${selected.number})` : ""}
+                {selected.name} {selected.number && `(#${selected.number})`}
               </div>
-              <button className="iconbtn" onClick={() => setSelected(null)} aria-label="Close">
+              <button className="iconbtn" onClick={() => setSelected(null)}>
                 ✕
               </button>
             </div>
@@ -229,54 +254,34 @@ export default function App() {
               </div>
 
               <div className="modal-info">
-                <div className="modal-price">BND {formatBnd(selected.price_bnd)}</div>
-
-                <div className="badges">
-                  <span className="badge">{selected.status || "—"}</span>
-                  {selected.rarity ? <span className="badge">{selected.rarity}</span> : null}
-                  {selected.condition ? <span className="badge">{selected.condition}</span> : null}
+                <div className="modal-price">
+                  BND {formatBnd(selected.price_bnd)}
                 </div>
 
                 <div className="kv">
-                  <span>Set</span><b>{selected.set || "-"}</b>
-                  <span>Number</span><b>{selected.number || "-"}</b>
-                  <span>Rarity</span><b>{selected.rarity || "-"}</b>
-                  <span>Condition</span><b>{selected.condition || "-"}</b>
+                  <span>Set</span><b>{selected.set}</b>
+                  <span>Number</span><b>{selected.number}</b>
+                  <span>Rarity</span><b>{selected.rarity}</b>
+                  <span>Condition</span><b>{selected.condition}</b>
                 </div>
 
-                {selected.notes ? (
-                  <div className="notes" style={{ marginTop: 4 }}>
-                    {selected.notes}
-                  </div>
-                ) : null}
+                {selected.notes && (
+                  <div className="notes">{selected.notes}</div>
+                )}
 
-                <div className="modal-actions">
-                  {(() => {
-                    const waLink = buildWhatsAppLink(selected);
-                    return (
-                      <a
-                        className={`btn ${!waLink ? "btn-disabled" : ""}`}
-                        href={waLink || undefined}
-                        target="_blank"
-                        rel="noreferrer"
-                        onClick={(e) => {
-                          if (!waLink) e.preventDefault();
-                        }}
-                      >
-                        DM to buy (WhatsApp)
-                      </a>
-                    );
-                  })()}
-                </div>
-
-                <div className="muted" style={{ fontSize: 12 }}>
-                  Tip: press <b>ESC</b> to close.
-                </div>
+                <a
+                  className="btn"
+                  href={buildWhatsAppLink(selected)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  DM to buy (WhatsApp)
+                </a>
               </div>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

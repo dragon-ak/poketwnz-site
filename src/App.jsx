@@ -21,6 +21,13 @@ function formatBnd(n) {
   return Number.isInteger(n) ? String(n) : n.toFixed(2);
 }
 
+function qtyLabel(qty) {
+  const q = Number(qty || 0);
+  if (q <= 0) return "Out of stock";
+  if (q === 1) return "Last 1";
+  return `${q} available`;
+}
+
 export default function App() {
   const [rows, setRows] = useState([]);
   const [q, setQ] = useState("");
@@ -51,6 +58,7 @@ export default function App() {
           name: r.name || "",
           rarity: r.rarity || "",
           condition: r.condition || "",
+          qty: Number(r.qty || 0), // ✅ NEW
           price_bnd: Number(r.price_bnd || 0),
           status: (r.status || "").toUpperCase(),
           image: r.image_direct || r.image_url || "",
@@ -81,7 +89,9 @@ export default function App() {
     const qq = q.trim().toLowerCase();
     return rows
       .filter((r) =>
-        onlyAvailable ? r.status === "AVAILABLE" : r.status !== "SOLD"
+        onlyAvailable
+          ? r.status === "AVAILABLE" && Number(r.qty || 0) > 0 // ✅ qty-aware
+          : r.status !== "SOLD"
       )
       .filter((r) => {
         if (!qq) return true;
@@ -102,6 +112,7 @@ export default function App() {
       `• Set: ${card.set || "-"}`,
       `• Condition: ${card.condition || "-"}`,
       `• Price: BND ${formatBnd(card.price_bnd)}`,
+      `• Qty shown: ${Number(card.qty || 0)}`,
       "",
       "Is it still available?",
     ];
@@ -110,6 +121,8 @@ export default function App() {
       lines.join("\n")
     )}`;
   }
+
+  const selectedOut = selected ? Number(selected.qty || 0) <= 0 : false;
 
   return (
     <div>
@@ -183,6 +196,7 @@ export default function App() {
           {filtered.map((r, i) => {
             const band = priceBand(r.price_bnd);
             const wa = buildWhatsAppLink(r);
+            const out = Number(r.qty || 0) <= 0;
 
             return (
               <article
@@ -209,6 +223,11 @@ export default function App() {
                     {r.set} • #{r.number} • {r.rarity} • {r.condition}
                   </div>
 
+                  {/* ✅ Qty display */}
+                  <div className={`qty ${Number(r.qty || 0) === 1 ? "last" : ""}`}>
+                    {qtyLabel(r.qty)}
+                  </div>
+
                   <div className="price">BND {formatBnd(r.price_bnd)}</div>
 
                   <div
@@ -216,12 +235,16 @@ export default function App() {
                     onClick={(e) => e.stopPropagation()}
                   >
                     <a
-                      className={`btn ${!wa ? "btn-disabled" : ""}`}
-                      href={wa || undefined}
+                      className={`btn ${!wa || out ? "btn-disabled" : ""}`}
+                      href={!out ? (wa || undefined) : undefined}
                       target="_blank"
                       rel="noreferrer"
+                      aria-disabled={out}
+                      onClick={(e) => {
+                        if (out) e.preventDefault();
+                      }}
                     >
-                      DM to buy (WhatsApp)
+                      {out ? "Out of stock" : "DM to buy (WhatsApp)"}
                     </a>
                   </div>
                 </div>
@@ -260,6 +283,11 @@ export default function App() {
                   BND {formatBnd(selected.price_bnd)}
                 </div>
 
+                {/* ✅ Qty display in modal */}
+                <div className="muted" style={{ marginTop: 6 }}>
+                  {qtyLabel(selected.qty)}
+                </div>
+
                 <div className="kv">
                   <span>Set</span>
                   <b>{selected.set}</b>
@@ -274,12 +302,16 @@ export default function App() {
                 {selected.notes && <div className="notes">{selected.notes}</div>}
 
                 <a
-                  className="btn"
-                  href={buildWhatsAppLink(selected)}
+                  className={`btn ${selectedOut ? "btn-disabled" : ""}`}
+                  href={!selectedOut ? buildWhatsAppLink(selected) : undefined}
                   target="_blank"
                   rel="noreferrer"
+                  aria-disabled={selectedOut}
+                  onClick={(e) => {
+                    if (selectedOut) e.preventDefault();
+                  }}
                 >
-                  DM to buy (WhatsApp)
+                  {selectedOut ? "Out of stock" : "DM to buy (WhatsApp)"}
                 </a>
               </div>
             </div>

@@ -369,3 +369,44 @@ body {
   font-weight: 700;
   color: #b45309; /* amber / urgency tone */
 }
+
+/* ===============================
+   Category tabs
+   =============================== */
+.catbar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.catpill {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: white;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.catpill.active {
+  border-color: rgba(0, 0, 0, 0.35);
+  font-weight: 700;
+}
+
+/* ===============================
+   Quantity badge
+   =============================== */
+.qty {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.qty.last {
+  font-weight: 700;
+  color: #b45309;
+}
+

@@ -24,7 +24,7 @@ function formatBnd(n) {
 function qtyLabel(qty) {
   const q = Number(qty || 0);
   if (q <= 0) return "Out of stock";
-  if (q === 1) return "Last 1";
+  if (q === 1) return "Last 1 in stock";
   return `${q} available`;
 }
 

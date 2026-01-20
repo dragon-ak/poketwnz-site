@@ -2,10 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
 import "./App.css";
 
+<<<<<<< Updated upstream
 /* ===============================
    TOGGLE COMING SOON HERE
    =============================== */
 const COMING_SOON = true; // set to false when launching
+=======
+// 🟢 Replace this with your published Google Sheet CSV link
+// at the top of App.jsx
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/XXXX/export?format=csv&gid=YYYY";
+;
+>>>>>>> Stashed changes
 
 function priceBand(bnd) {
   if (!Number.isFinite(bnd)) return { label: "—", cls: "" };

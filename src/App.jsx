@@ -6,7 +6,7 @@ import "./App.css";
 /* ===============================
    TOGGLE COMING SOON HERE
    =============================== */
-const COMING_SOON = true; // set to false when launching
+const COMING_SOON = false; // set to false when launching
 =======
 // 🟢 Replace this with your published Google Sheet CSV link
 // at the top of App.jsx

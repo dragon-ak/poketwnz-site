@@ -2,17 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import Papa from "papaparse";
 import "./App.css";
 
-<<<<<<< Updated upstream
 /* ===============================
    TOGGLE COMING SOON HERE
    =============================== */
-const COMING_SOON = false; // set to false when launching
-=======
-// 🟢 Replace this with your published Google Sheet CSV link
-// at the top of App.jsx
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/XXXX/export?format=csv&gid=YYYY";
-;
->>>>>>> Stashed changes
+const COMING_SOON = false; // false = LIVE, true = Coming Soon
 
 function priceBand(bnd) {
   if (!Number.isFinite(bnd)) return { label: "—", cls: "" };
@@ -127,12 +120,11 @@ export default function App() {
         <div className="coming-overlay">
           <div className="coming-card">
             <div className="coming-logo">Poketwnz</div>
-            <div className="coming-tag">
-              Pokémon cards. From Brunei.
-            </div>
+            <div className="coming-tag">Pokémon cards. From Brunei.</div>
 
             <div className="coming-text">
-              We’re setting things up.<br />
+              We’re setting things up.
+              <br />
               Inventory and pricing coming soon.
             </div>
 
@@ -162,7 +154,10 @@ export default function App() {
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search card / set / rarity…"
             />
-            <button className="pill" onClick={() => setOnlyAvailable(!onlyAvailable)}>
+            <button
+              className="pill"
+              onClick={() => setOnlyAvailable(!onlyAvailable)}
+            >
               {onlyAvailable ? "Showing: AVAILABLE" : "Showing: ALL"}
             </button>
           </div>
@@ -266,15 +261,17 @@ export default function App() {
                 </div>
 
                 <div className="kv">
-                  <span>Set</span><b>{selected.set}</b>
-                  <span>Number</span><b>{selected.number}</b>
-                  <span>Rarity</span><b>{selected.rarity}</b>
-                  <span>Condition</span><b>{selected.condition}</b>
+                  <span>Set</span>
+                  <b>{selected.set}</b>
+                  <span>Number</span>
+                  <b>{selected.number}</b>
+                  <span>Rarity</span>
+                  <b>{selected.rarity}</b>
+                  <span>Condition</span>
+                  <b>{selected.condition}</b>
                 </div>
 
-                {selected.notes && (
-                  <div className="notes">{selected.notes}</div>
-                )}
+                {selected.notes && <div className="notes">{selected.notes}</div>}
 
                 <a
                   className="btn"
